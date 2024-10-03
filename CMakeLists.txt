@@ -1,2 +1,3 @@
 cmake_minimum_required(VERSION 3.16)
 project(linux_homeworks)
+add_subdirectory(git_homework_1)
