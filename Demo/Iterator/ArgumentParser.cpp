@@ -20,7 +20,7 @@ int main() {
         std::strcpy(argv[i], args[i].c_str());
     } // esi zut inputnem vekalum shata ankap gitem
     argv[argc] = nullptr;
-    ArgumentParser parser(argc, argv , "a?:c:");
+    ArgumentParser parser(argc, argv , "ab:c:");
     for (const auto& arg : parser) {
         std::cout << arg->key << " " << arg->value.value_or("")<< "\n";
     }
