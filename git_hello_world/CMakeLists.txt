@@ -1,2 +1,0 @@
-project(git_hello_world)
-add_executable(git_hello_world hello_world.cpp)

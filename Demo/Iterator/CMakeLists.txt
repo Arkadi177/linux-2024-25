@@ -1,0 +1,7 @@
+project(Iterator)
+add_executable(circular_iterator CircularIntIterator.cpp)
+add_executable(filter_iterator FilterIntegerIterator.cpp)
+add_executable(reverse_iterator ReverseArrayIterator.cpp)
+target_include_directories(circular_iterator PRIVATE ../../Utils/)
+target_include_directories(filter_iterator PRIVATE ../../Utils/)
+target_include_directories(reverse_iterator PRIVATE ../../Utils/)
