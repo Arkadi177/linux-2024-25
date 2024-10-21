@@ -69,8 +69,8 @@ public:
         }
     };
 
-    explicit Directory(const char *path) : path(path) {
-        dir = opendir(path);
+    explicit Directory(std::string& path) : path(path) {
+        dir = opendir(path.c_str());
     }
     Recursive_directory_iterator begin() const {
         dirent* entry = readdir(dir);
