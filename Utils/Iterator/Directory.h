@@ -27,7 +27,7 @@ class Directory {
 
     RecursiveDirectoryIterator(const std::string& file_name, dirent* entry,
                                  DIR* dir)
-        : m_file_name(file_name), m_dir(dir), m_entry(entry) {
+        : m_file_name(" "), m_dir(dir), m_entry(entry) {
       if (!file_name.empty()) {
         m_stack.push({file_name, 0});
       }
@@ -59,7 +59,6 @@ class Directory {
           seekdir(m_dir , off);
           m_entry = readdir(m_dir);
       }
-
     }
 
     bool operator==(const RecursiveDirectoryIterator& other) const {
@@ -73,10 +72,10 @@ class Directory {
       return !(*this == other);
     }
 
-    char* operator*() const {
-      return m_entry->d_name;
+    const char* operator*()  {
+      m_file_name = m_stack.top().m_basename + "/" + m_entry->d_name;
+      return m_file_name.c_str();
     }
-
   };
 
   explicit Directory(std::string& path) : path(path) {
