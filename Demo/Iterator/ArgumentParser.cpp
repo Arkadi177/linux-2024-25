@@ -3,26 +3,60 @@
 #include <sstream>
 #include <vector>
 #include <cstring>
-int main() {
-    std::vector<std::string> args;
-    std::string input_line;
-    std::getline(std::cin, input_line);
-    std::istringstream iss(input_line);
-    std::string arg;
-    while (iss >> arg) {
-        args.push_back(arg);
-    }
-    int argc = args.size();
-    char** argv = new char*[argc + 1];
+// Testing functions
+void ArgParserTest1() {
+  std::vector<std::string> args = {"program", "-o",
+                                   "-v", "source.txt", "dest.txt"};
+  std::vector<char *> argv;
+  argv.reserve(args.size());
+  for (auto &arg: args) {
+    argv.push_back(arg.data());
+  }
 
-    for (int i = 0; i < argc; ++i) {
-        argv[i] = new char[args[i].size() + 1];
-        std::strcpy(argv[i], args[i].c_str());
-    } // esi zut inputnem vekalum shata ankap gitem
-    argv[argc] = nullptr;
-    ArgumentParser parser(argc, argv , "ab:c:");
-    for (const auto& arg : parser) {
-        std::cout << arg->key << " " << arg->value.value_or("")<< "\n";
-    }
-    return 0;
+  ArgumentParser parser(static_cast<int>(argv.size()), argv.data(), "ov:");
+
+  std::cout << "Test 1:\n";
+  for (const auto& arg : parser) {
+    std::cout << arg.m_key.value_or("(positional)") << " "
+              << arg.m_value.value_or("") << "\n";
+  }
+  /** Should print:
+   * o
+   * v source.txt
+   * (positional) dest.txt
+   */
+
+  std::cout << "\n";
+}
+
+void ArgParserTest2() {
+  std::vector<std::string> args = {"program", "-f", "-o", "output.txt",
+                                   "input.txt1", "input.txt2"};
+  std::vector<char *> argv;
+  argv.reserve(args.size());
+  for (auto &arg: args) {
+    argv.push_back(arg.data());
+  }
+
+  ArgumentParser parser(static_cast<int>(argv.size()), argv.data(), "fo:");
+
+  std::cout << "Test 2:\n";
+  for (auto arg : parser) {
+    std::cout << arg.m_key.value_or("(positional)") << " "
+              << arg.m_value.value_or("") << "\n";
+  }
+  std::cout << "\n";
+  /** Should print:
+   * f
+   * o output.txt
+   * (positional) input.txt1
+   * (positional) input.txt2
+   */
+}
+
+int main() {
+  ArgParserTest2();
+  ArgParserTest1();
+
+  return 0;
 }
