@@ -2,9 +2,8 @@
 #include <iostream>
 #include <string>
 #include <utility>
-#include <vector>
 #include <optional>
-#include <bits/getopt_core.h>
+#include <getopt.h>
 
 struct Argument {
     std::optional<std::string> m_key;
@@ -35,6 +34,7 @@ struct Argument {
 
 
 class ArgumentParser {
+
     int argc = 0;
     char **argv = nullptr;
     Argument *arg = nullptr;
@@ -72,8 +72,11 @@ public:
     };
 
     void parse() {
-        int opt = 0;
+        optind = 1;
+        opterr = 0;
+        optopt = 0;
         int index = 0;
+        int opt = 0;
         while ((opt = getopt(argc, argv, m_optstring.c_str())) != -1) {
             if(opt != '?') {
                 std::string opt_str = std::string(1 , opt);
@@ -91,13 +94,14 @@ public:
             arg[index].m_value = value;
             index++;
         }
+        argc = index; // to get the end of array
     }
 
-    Iterator begin() {
+    Iterator begin() const{
         return {arg};
     }
 
-    Iterator end() {
+    Iterator end() const{
         return {arg + argc};
     }
 
