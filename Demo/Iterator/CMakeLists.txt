@@ -12,3 +12,6 @@ target_include_directories(reverse_iterator PRIVATE ../../Utils/)
 
 add_executable(directory_iterator Directory.cpp)
 target_include_directories(directory_iterator PRIVATE ../../Utils/Iterator)
+
+add_executable(ArgumentParserDemo ArgumentParser.cpp)
+target_include_directories(ArgumentParserDemo PRIVATE ../../Utils/)
