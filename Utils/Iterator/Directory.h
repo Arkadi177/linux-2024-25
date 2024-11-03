@@ -46,8 +46,8 @@ class Directory {
 
     void operator++() {
       if (m_entry != nullptr && m_entry->d_type == DT_DIR &&
-          std::string(m_entry->d_name) != "." &&
-          std::string(m_entry->d_name) != "..") {
+          std::string_view(m_entry->d_name) != "." &&
+          std::string_view(m_entry->d_name) != "..") {
           m_stack.push({m_stack.top().m_basename + "/" + m_entry->d_name, telldir(m_dir)});
           m_dir = opendir(m_stack.top().m_basename.c_str());
       }
@@ -62,19 +62,16 @@ class Directory {
     }
 
     bool operator==(const RecursiveDirectoryIterator& other) const {
-      if (other.m_entry == m_entry) {
-        return true;
-      }
-      return false;
+      return other.m_entry == m_entry;
     }
 
     bool operator!=(const RecursiveDirectoryIterator& other) const {
       return !(*this == other);
     }
 
-    const char* operator*()  {
+    std::string operator*()  {
       m_file_name = m_stack.top().m_basename + "/" + m_entry->d_name;
-      return m_file_name.c_str();
+      return m_file_name;
     }
   };
 
