@@ -69,6 +69,10 @@ class Directory {
       return !(*this == other);
     }
 
+    unsigned char get_d_type() {
+      return m_entry->d_type;
+    }
+
     std::string operator*()  {
       m_file_name = m_stack.top().m_basename + "/" + m_entry->d_name;
       return m_file_name;
