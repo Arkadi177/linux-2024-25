@@ -37,7 +37,17 @@ void super_rm(std::optional<std::string> path , bool verbose, bool recursive) {
 
   Directory dir(path.value());
   if(recursive == false) {
-    rmdir(path.value().c_str());
+    if(dir.begin().get_d_type() != DT_FIFO) {
+      int fd = open(((*dir.begin())).c_str(), O_WRONLY);
+      if(fd == -1) {
+        perror("open");
+      }
+      write(fd , "\0" , 2);
+      close(fd);
+      unlink((*dir.begin()).c_str());
+    }else {
+      perror(("Not a File: " + path.value()).c_str());
+    }
     return;
   }
   for (auto it = dir.begin(); it != dir.end(); ++it) {
