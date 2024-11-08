@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string>
 #include <stdexcept>
+#include <sys/stat.h>
 
 void delete_empty_dir(const std::string& path) {
 
@@ -37,9 +38,12 @@ void super_rm(std::optional<std::string> path , bool verbose, bool recursive) {
 
   Directory dir(path.value());
   if(recursive == false) {
-    DIR* dir_file = opendir(path.value().c_str());
-    dirent* entry = readdir(dir_file);
-    if(entry->d_type == DT_REG) {
+    struct stat st;
+    if (stat(path.value().c_str(), &st) != 0) {
+      perror(("Failed to stat: " + path.value()).c_str());
+      return;
+    }
+    if(S_ISREG(st.st_mode)) {
       int fd = open(((*dir.begin())).c_str(), O_WRONLY);
       if(fd == -1) {
         perror("open");
@@ -50,7 +54,6 @@ void super_rm(std::optional<std::string> path , bool verbose, bool recursive) {
     }else {
       perror(("Not a File: " + path.value()).c_str());
     }
-    closedir(dir_file);
     return;
   }
   for (auto it = dir.begin(); it != dir.end(); ++it) {
