@@ -37,7 +37,7 @@ void super_rm(std::optional<std::string> path , bool verbose, bool recursive) {
 
   Directory dir(path.value());
   if(recursive == false) {
-    if(dir.begin().get_d_type() != DT_FIFO) {
+    if(dir.begin().get_d_type() == DT_REG) {
       int fd = open(((*dir.begin())).c_str(), O_WRONLY);
       if(fd == -1) {
         perror("open");
