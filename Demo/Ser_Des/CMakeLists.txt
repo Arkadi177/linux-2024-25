@@ -1,3 +1,6 @@
 project(Ser_Des)
 
-add_executable(tests test_cases.cpp)
+add_executable(Serializaion_test_1 test_case_1.cpp)
+add_executable(Serializaion_test_2 test_case_2.cpp)
+add_executable(Serializaion_test_3 test_case_3.cpp)
+add_executable(Serializaion_test_4_not_copiable test_case_4_not_copiable.cpp)
