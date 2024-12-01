@@ -1,6 +1,5 @@
 project(Ser_Des)
 
-add_executable(Serializaion_test_1 test_case_1.cpp)
-add_executable(Serializaion_test_2 test_case_2.cpp)
-add_executable(Serializaion_test_3 test_case_3.cpp)
-add_executable(Serializaion_test_4_not_copiable test_case_4_not_copiable.cpp)
+add_executable(Serialazation_tests main.cpp test_case_1.cpp test_case_2.cpp test_case_3.cpp test_case_4_not_copiable.cpp)
+
+target_include_directories(Serialazation_tests PRIVATE ../../Utils/Ser_Des)

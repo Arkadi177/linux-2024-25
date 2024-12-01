@@ -14,7 +14,7 @@ struct Data {
   double value;
 };
 
-int main() {
+void test1() {
   std::string path = "test_file_1.bin";
   Data original = {42, 3.14};
   Data deserialized;
@@ -39,5 +39,4 @@ int main() {
   std::cout << "Serialization took " << serialize_duration << " microseconds.\n";
   std::cout << "Deserialization took " << deserialize_duration << " microseconds.\n";
 
-  return 0;
 }

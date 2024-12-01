@@ -12,7 +12,7 @@
 
 constexpr size_t array_size = 10;
 
-int main() {
+void test3() {
   std::string path = "test_file_3.bin";
   int original[array_size] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   int deserialized[array_size] = {0};
@@ -38,5 +38,4 @@ int main() {
   std::cout << "Serialization took " << serialize_duration << " microseconds.\n";
   std::cout << "Deserialization took " << deserialize_duration << " microseconds.\n";
 
-  return 0;
 }

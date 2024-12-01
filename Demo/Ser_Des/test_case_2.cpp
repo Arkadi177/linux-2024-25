@@ -33,7 +33,7 @@ private:
     friend void deserialize<CustomObject>(CustomObject&, std::string&);
 };
 
-int main() {
+void test2() {
     std::string path = "test_file_2.bin";
     CustomObject original(7, 2.718f, "Hello, World!");
     CustomObject deserialized;
@@ -57,5 +57,4 @@ int main() {
     std::cout << "Serialization took " << serialize_duration << " microseconds.\n";
     std::cout << "Deserialization took " << deserialize_duration << " microseconds.\n";
 
-    return 0;
 }
