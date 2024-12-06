@@ -1,5 +1,6 @@
 #ifndef DR_WATCHER_H
 #define DR_WATCHER_H
+
 #include <algorithm>
 #include <sys/inotify.h>
 #include <iostream>
@@ -43,10 +44,10 @@ std::string get_name(const std::string& pathname) {
   return filename;
 }
 
+constexpr unsigned int MAX_EVENTS_COUNT = 128;
 constexpr unsigned int EVENT_SIZE = sizeof(struct inotify_event); // struct inotify doesn't include the size of event and
-constexpr unsigned int BLOCK_SIZE = 4096;
-constexpr unsigned int MAX_SIZE_FILENAME = 256;
-constexpr unsigned int BUF_SIZE = BLOCK_SIZE * (EVENT_SIZE + MAX_SIZE_FILENAME); // cause the depends on filename size
+constexpr unsigned int MAX_SIZE_FILENAME = 64;
+constexpr unsigned int BUF_SIZE = ( EVENT_SIZE + MAX_SIZE_FILENAME ); // cause the depends on filename size
 
 class DirectoryWatcher {
 
@@ -76,29 +77,36 @@ public:
   }
 
   void watch() const{
+    long len = 1;
     char buffer[BUF_SIZE];
-    while(true) {
-      long len = read(fd, buffer, BUF_SIZE);
-      if(len < 0) {
+    while((len = read(fd, buffer, sizeof(buffer)))) {
+      if(len == -1) {
         std::cerr << "Read failed: " << name << std::strerror(errno) << std::endl;
         exit(EXIT_FAILURE);
       }
+      if(len == 0) {
+        break;
+      }
       for(unsigned int i = 0; i < len; ) {
-        auto event = reinterpret_cast<struct inotify_event*>(&buffer[i]);
+        auto event = reinterpret_cast<const struct inotify_event*>(&buffer[i]);
         if(status == IS_FILE) {
-            if(event->mask & IN_MODIFY) {
-              std::cout << "File Modified: "  << name << std::endl;
-            }
-            if(event->mask & IN_DELETE_SELF) {
-              std::cout << "File Attributes changed: " << name <<std::endl;
-              return;
-            }
-            if(event->mask & IN_ATTRIB) {
-              std::cout << "File Deleted: "  << name << std::endl;
-            }
-            if(event->mask & IN_ACCESS) {
-              std::cout << "File Accessed: " << name << std::endl;
-            }
+          if(event->mask & IN_MODIFY) {
+            std::cout << "File Modified: "  << name << std::endl;
+          }
+          if(event->mask & IN_DELETE_SELF) {
+            std::cout << "File Attributes changed: " << name <<std::endl;
+            return;
+          }
+          if(event->mask & IN_ATTRIB) {
+            std::cout << "File Deleted: "  << name << std::endl;
+          }
+          if(event->mask & IN_ACCESS) {
+            std::cout << "File Accessed: " << name << std::endl;
+          }
+          if (event->mask & IN_IGNORED) {
+            std::cout << "Watch target deleted or unlinked: " << name << std::endl;
+            return;
+          }
         }else {
           if(event->mask & IN_MODIFY) {
             std::cout << "Modify: "  << name << std::endl;
