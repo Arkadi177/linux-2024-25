@@ -15,7 +15,7 @@ struct Data {
 };
 
 void test1() {
-  std::string path = "test_file_1.bin";
+  std::filesystem::path path = "test_file_1.bin";
   Data original = {42, 3.14};
   Data deserialized;
 

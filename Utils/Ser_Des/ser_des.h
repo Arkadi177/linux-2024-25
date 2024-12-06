@@ -7,13 +7,13 @@
 #include <sys/mman.h>
 #include <cstring>
 #include <cerrno>
-
+#include <filesystem>
 #include <type_traits>
 
 struct file {
     int fd;
 
-    explicit file(const std::string& path , int flags , int mode)
+    explicit file(const std::filesystem::path& path , int flags , int mode)
         : fd(open(path.c_str() , flags , mode)) {
         if (fd == -1) {
             throw std::runtime_error(std::strerror(errno));
@@ -28,8 +28,8 @@ struct file {
 struct file_map {
     std::byte* data;
     size_t size;
-    file_map(void* addres , size_t size , int prototype , int flags , int fd , off_t offset): size(size) {
-        auto ptr = mmap(addres , size , prototype , flags , fd , offset);
+    file_map(void* address , size_t size , int prototype , int flags , int fd , off_t offset): size(size) {
+        auto ptr = mmap(address , size , prototype , flags , fd , offset);
         if(ptr == MAP_FAILED) {
             throw std::runtime_error(std::strerror(errno));
         }
@@ -40,65 +40,58 @@ struct file_map {
         munmap(data, size);
     }
 
-    std::byte* operator*() const{
+    [[nodiscard]] std::byte* get() const {
         return data;
     }
 };
 
 constexpr size_t block_size = 4096;
 constexpr int serializationMagic = 564982;
+constexpr auto size_int = sizeof(int);
+
 template <class T>
+void serialize(T& object , std::filesystem::path& path) {
+    static_assert(std::is_trivially_copyable<T>::value, "T must be trivially copyable");
 
-void serialize(T& object , std::string& path) {
-    try{
-        static_assert(std::is_trivially_copyable<T>::value, "T must be trivially copyable");
+    file my_file(path , O_RDWR | O_CREAT , 0666);
 
-        file my_file(path , O_RDWR | O_CREAT , 0666);
-
-        if (ftruncate(my_file.fd, sizeof(T) + sizeof(int)) == -1) {
-            std::cerr << "Error resizing file: " << std::strerror(errno) << std::endl;
-            exit(EXIT_FAILURE);
-        }
-
-        write(my_file.fd , &serializationMagic , sizeof(serializationMagic));
-
-        file_map map(nullptr, block_size, PROT_WRITE, MAP_SHARED, my_file.fd, 0);
-
-        std::memcpy(*map + sizeof(int), &object, sizeof(T));
-        munmap(*map + sizeof(int), block_size);
-
-    }catch (std::runtime_error& e) {
-        std::cerr << e.what() << std::endl;
+    if (ftruncate(my_file.fd, sizeof(T) + sizeof(int)) == -1) {
+        throw std::runtime_error(std::strerror(errno));
     }
+    auto len = write(my_file.fd , &serializationMagic , sizeof(serializationMagic));
+
+    if(len == -1) {
+        throw std::runtime_error(std::strerror(errno));
+    }
+    file_map map(nullptr, block_size, PROT_WRITE, MAP_SHARED, my_file.fd, 0);
+
+    std::memcpy(map.get() + size_int, &object, sizeof(T));
+
 }
 
 template <class T>
-void deserialize(T& object , std::string& path) {
-    try{
-        if(!std::is_trivially_copyable<T>::value) {
-            std::cerr << "Object is not trivially copyable! " << std::endl;
-            exit(1);
-        }
+void deserialize(T& object , std::filesystem::path& path) {
+    static_assert(std::is_trivially_copyable<T>::value, "T must be trivially copyable");
 
-        file my_file(path , O_RDWR | O_CREAT , 0666);
+    file my_file(path , O_RDWR | O_CREAT , 0666);
+    int number = 0;
 
-        int number = 0;
-
-        lseek(my_file.fd, 0, SEEK_SET);
-        read(my_file.fd, &number, sizeof(int));
-
-        if(number != serializationMagic) {
-            std::cerr << "Error reading file: " << std::endl;
-            exit(EXIT_FAILURE);
-        }
-
-        file_map map(nullptr, block_size, PROT_READ ,MAP_SHARED, my_file.fd, 0);
-
-        std::memcpy(&object, *map + sizeof(int), sizeof(T));
-        munmap(*map + sizeof(int), block_size);
-
-    }catch (std::runtime_error& e) {
-        std::cerr << e.what() << std::endl;
+    auto len = lseek(my_file.fd, 0, SEEK_SET);
+    if(len == -1) {
+        throw std::runtime_error(std::strerror(errno));
     }
+
+    len = read(my_file.fd, &number, size_int);
+    if(len == -1) {
+        throw std::runtime_error(std::strerror(errno));
+    }
+
+    if(number != serializationMagic) {
+        throw std::runtime_error(std::strerror(errno));
+    }
+
+    file_map map(nullptr, block_size, PROT_READ ,MAP_SHARED, my_file.fd, 0);
+    std::memcpy(&object, map.get() + size_int, sizeof(T));
+
 }
 #endif

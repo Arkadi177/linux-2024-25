@@ -13,8 +13,8 @@
 constexpr size_t array_size = 10;
 
 void test3() {
-  std::string path = "test_file_3.bin";
-  int original[array_size] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  std::filesystem::path path = "test_file_3.bin";
+  int original[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   int deserialized[array_size] = {0};
 
   // Benchmark serialization

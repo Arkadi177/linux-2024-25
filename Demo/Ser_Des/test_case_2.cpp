@@ -13,7 +13,7 @@
 class CustomObject {
 public:
     CustomObject() = default;
-    CustomObject(int a, float b, const std::string& s) : int_val(a), float_val(b) {
+    CustomObject(int a, float b, const std::filesystem::path& s) : int_val(a), float_val(b) {
         std::strncpy(str_val, s.c_str(), sizeof(str_val));
         str_val[sizeof(str_val) - 1] = '\0'; // Null-terminate the string
     }
@@ -29,12 +29,12 @@ private:
     float float_val;
     char str_val[50];
 
-    friend void serialize<CustomObject>(CustomObject&, std::string&);
-    friend void deserialize<CustomObject>(CustomObject&, std::string&);
+    friend void serialize<CustomObject>(CustomObject&, std::filesystem::path&);
+    friend void deserialize<CustomObject>(CustomObject&, std::filesystem::path&);
 };
 
 void test2() {
-    std::string path = "test_file_2.bin";
+    std::filesystem::path path = "test_file_2.bin";
     CustomObject original(7, 2.718f, "Hello, World!");
     CustomObject deserialized;
 
