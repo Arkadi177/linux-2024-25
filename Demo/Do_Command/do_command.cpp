@@ -33,5 +33,7 @@ void do_command(const std::string& command_to_do) { // find it in man exec execl
 }
 
 int main() {
-  do_command("touch filename.txt");
+  std::string command_to_do;
+  getline(std::cin, command_to_do);
+  do_command(command_to_do);
 }
