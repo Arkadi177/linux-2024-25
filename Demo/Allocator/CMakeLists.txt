@@ -1,4 +1,4 @@
 project(Allocator)
 
-add_executable(allocator my_allocator.cpp)
+add_executable(allocator gpt_test_allocator.cpp)
 target_include_directories(allocator PRIVATE ../../Utils/Allocator)
