@@ -7,14 +7,9 @@
 #include <vector>
 
 void do_command(const std::string& command_to_do) { // find it in man exec execl("/bin/sh", "sh", "-c", command, (char *) NULL);
-  std::vector<const char *> tokens;
-  tokens.push_back("sh");
-  tokens.push_back("-c");
-  tokens.push_back(command_to_do.c_str());
-  tokens.push_back(nullptr);
   auto child = fork();
   if (child == 0) {
-    execv("/bin/sh" , const_cast<char**>(tokens.data()));
+    execl("/bin/sh" , "sh" , "-c" ,command_to_do.c_str() , nullptr);
     exit(EXIT_SUCCESS);
   }else {
     int status;
