@@ -1,2 +1,2 @@
-Modify: watcher_directory 
-Deleted: watcher_directory 
+Modify: "watcher_directory"
+Deleted: "watcher_directory"
