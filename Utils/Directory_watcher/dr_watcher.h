@@ -9,13 +9,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstring>
+#include <filesystem>
 
-enum Status {
+enum File_Type {
   IS_FILE,
   IS_DIRECTORY
 };
 
-Status check_status(const std::string& pathname) {
+File_Type check_status(const std::string& pathname) {
   struct stat path_stat{};
   if(stat(pathname.c_str(), &path_stat) == 0) {
     if(S_ISDIR(path_stat.st_mode)) {
@@ -24,24 +25,8 @@ Status check_status(const std::string& pathname) {
       return IS_FILE;
     }
   }else {
-    std::cerr << "Pathname " << pathname << "didn't exist: " << std::strerror(errno) << std::endl;
-    exit(EXIT_FAILURE);
+    throw std::runtime_error("File not found");
   }
-}
-
-std::string get_name(const std::string& pathname) {
-  std::string filename = " ";
-  for(auto i = pathname.end() - 1; ; i--) {
-    if(*i == '/') {
-      break;
-    }
-    filename += *i;
-    if(i == pathname.begin()) {
-      break;
-    }
-  }
-  std::reverse(filename.begin(), filename.end());
-  return filename;
 }
 
 constexpr unsigned int MAX_EVENTS_COUNT = 128;
@@ -53,17 +38,17 @@ class DirectoryWatcher {
 
   int watch_fd;
   int fd;
-  Status status;
-  std::string name;
+  File_Type status;
+  std::filesystem::path name;
 
 public:
 
-  explicit DirectoryWatcher(const std::string &pathname)
-    : watch_fd(-1) , fd(-1) , status(check_status(pathname)) , name(get_name(pathname)){
+  explicit DirectoryWatcher(const std::string &pathname) : watch_fd(-1) , fd(-1)
+  , status(check_status(pathname)) , name(pathname)
+  {
     fd = inotify_init1(0);
     if(fd == -1) {
-      std::cerr << "Inotify_init failed: " << pathname << std::strerror(errno) << std::endl;
-      exit(EXIT_FAILURE);
+      throw std::runtime_error("inotify_init1() failed");
     }
     if(status == IS_FILE) {
       watch_fd = inotify_add_watch(fd , pathname.c_str(), IN_ACCESS | IN_MODIFY | IN_ATTRIB |
@@ -72,7 +57,7 @@ public:
       watch_fd = inotify_add_watch(fd , pathname.c_str(), IN_CREATE | IN_MODIFY | IN_DELETE);
     }
     if(watch_fd == -1) {
-      std::cerr << "Inotify_add_watch failed: " << pathname << std::strerror(errno)  << std::endl;
+      throw std::runtime_error("inotify_add_watch() failed");
     }
   }
 
@@ -81,8 +66,7 @@ public:
     char buffer[BUF_SIZE];
     while((len = read(fd, buffer, sizeof(buffer)))) {
       if(len == -1) {
-        std::cerr << "Read failed: " << name << std::strerror(errno) << std::endl;
-        exit(EXIT_FAILURE);
+         throw std::runtime_error("read() failed");
       }
       if(len == 0) {
         break;
