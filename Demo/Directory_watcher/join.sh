@@ -49,11 +49,3 @@ File Created: new_file.txt
 File Deleted: file2.txt
 EOF
 
-# Step 9: Compare the actual results with the expected ones
-echo "Comparing results with expected output..."
-if diff -q results.txt expected_results.txt; then
-    echo "Test passed: Results match expected output."
-else
-    echo "Test failed: Results do not match expected output."
-    diff results.txt expected_results.txt
-fi

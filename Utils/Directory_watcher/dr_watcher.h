@@ -79,7 +79,6 @@ public:
           }
           if(event->mask & IN_DELETE_SELF) {
             std::cout << "File Attributes changed: " << name <<std::endl;
-            return;
           }
           if(event->mask & IN_ATTRIB) {
             std::cout << "File Deleted: "  << name << std::endl;
@@ -89,7 +88,6 @@ public:
           }
           if (event->mask & IN_IGNORED) {
             std::cout << "Watch target deleted or unlinked: " << name << std::endl;
-            return;
           }
         }else {
           if(event->mask & IN_MODIFY) {
@@ -97,7 +95,6 @@ public:
           }
           if(event->mask & IN_DELETE) {
             std::cout << "Deleted: "  << name << std::endl;
-            return;
           }
           if(event->mask & IN_CREATE) {
             std::cout << "Created: "  << name << std::endl;
