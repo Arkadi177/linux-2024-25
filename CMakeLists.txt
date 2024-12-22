@@ -6,6 +6,8 @@ add_subdirectory(Copy/)
 
 add_subdirectory(SuperRM/)
 
+add_subdirectory(Demo/Duplication_Spell)
+
 add_subdirectory(Demo/Directory_watcher)
 
 add_subdirectory(Demo/Ser_Des)
