@@ -16,7 +16,7 @@ int do_command(const std::string& command_to_do) { // find it in man exec execl(
     return -1;
   }else {
     int status;
-    wait(&status);
+    waitpid(-1, &status, 0);
     return WEXITSTATUS(status);
   }
 }
