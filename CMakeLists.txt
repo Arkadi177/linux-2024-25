@@ -14,5 +14,6 @@ add_subdirectory(Demo/Xargs)
 
 add_subdirectory(Demo/Allocator)
 
+add_subdirectory(Demo/Directory_watcher)
 
 add_subdirectory(Demo/Do_Command)
