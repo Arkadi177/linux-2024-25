@@ -9,6 +9,8 @@ add_subdirectory(SuperRM/)
 
 add_subdirectory(Demo/Ser_Des)
 
+add_subdirectory(Demo/Xargs)
+
 add_subdirectory(Demo/Allocator)
 
 
