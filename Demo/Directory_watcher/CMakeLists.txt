@@ -12,6 +12,8 @@ target_include_directories(watcher_demo PRIVATE
         ../../Utils/Iterator
 )
 
+target_link_directories(watcher_demo PRIVATE library_utils)
+
 # Print useful debugging information
 message(INFO "CMake command: ${CMAKE_COMMAND}")
 message(INFO "Current list directory: ${CMAKE_CURRENT_LIST_DIR}")
