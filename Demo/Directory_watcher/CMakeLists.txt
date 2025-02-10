@@ -12,7 +12,7 @@ target_include_directories(watcher_demo PRIVATE
         ../../Utils/Iterator
 )
 
-target_link_directories(watcher_demo PRIVATE library_utils)
+target_link_directories(watcher_demo PRIVATE utils_static)
 
 # Print useful debugging information
 message(INFO "CMake command: ${CMAKE_COMMAND}")
