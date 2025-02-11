@@ -14,7 +14,6 @@ set(SOURCES
         Iterator/Directory.cpp
         Iterator/FilterIntegerIterator.cpp
         Iterator/ReverseArrayIterator.cpp
-        Blocking_queue/blocking_queue.cpp
         Ser_Des/ser_des.cpp
 )
 
