@@ -4,7 +4,8 @@
 #include <queue>
 #include <iostream>
 
-bool m_dead = false;
+std::vector<bool> m_dead;
+int i = -1;
 
 template <typename T>
 class BlockingQueue{
@@ -13,15 +14,16 @@ class BlockingQueue{
   std::condition_variable m_condition_variable;
   std::queue<T> m_queue;
   std::size_t m_size;
+  int m_index;
 
   public:
 
-   explicit BlockingQueue(std::size_t size) : m_size(size) {}
+   explicit BlockingQueue(std::size_t size) : m_size(size) , m_index(i) {}
 
     void push(const T& item) {
        std::unique_lock<std::mutex> lock(m_mutex);
        m_condition_variable.wait(lock, [&]{return m_queue.size() < m_size;});
-       if(m_dead) {
+       if(!m_dead.empty() && m_dead[m_index]) {
          return;
        }
        m_queue.push(item);
@@ -32,8 +34,7 @@ class BlockingQueue{
     void push(T&& item) {
        std::unique_lock<std::mutex> lock(m_mutex);
        m_condition_variable.wait(lock, [&]{return m_queue.size() < m_size;});
-       if(m_dead) {
-         m_dead = false;
+       if(!m_dead.empty() && m_dead[m_index]) {
          return;
        }
        m_queue.push(std::move(item));
@@ -43,8 +44,7 @@ class BlockingQueue{
 
     bool try_push(const T& item) {
        std::unique_lock<std::mutex> lock(m_mutex);
-       if(m_dead) {
-         m_dead = false;
+       if(!m_dead.empty() && m_dead[m_index]) {
          return false;
        }
        else if(m_queue.size() < m_size) {
@@ -55,8 +55,7 @@ class BlockingQueue{
 
     bool try_push(T&& item) {
         std::unique_lock<std::mutex> lock(m_mutex);
-        if(m_dead) {
-          m_dead = false;
+        if(!m_dead.empty() && m_dead[m_index]) {
           return false;
         }
         else if(m_queue.size() < m_size) {
@@ -68,8 +67,7 @@ class BlockingQueue{
     void pop() noexcept{
        std::unique_lock<std::mutex> lock(m_mutex);
        m_condition_variable.wait(lock, [&]{return !m_queue.empty();});
-       if(m_dead) {
-         m_dead = false;
+       if(!m_dead.empty() && m_dead[m_index]) {
          return;
        }
        m_queue.pop();
@@ -79,8 +77,7 @@ class BlockingQueue{
 
     bool try_pop() {
        std::unique_lock<std::mutex> lock(m_mutex);
-       if(m_dead) {
-         m_dead = false;
+       if(!m_dead.empty() && m_dead[m_index]) {
          return false;
        }
        else if(!m_queue.empty()) {
@@ -91,7 +88,9 @@ class BlockingQueue{
 
     ~BlockingQueue() {
        std::unique_lock<std::mutex> lock(m_mutex);
-       m_dead = true;
+       m_dead.push_back(true);
+       m_index++;
+       i++;
        m_condition_variable.notify_all();
     }
 
