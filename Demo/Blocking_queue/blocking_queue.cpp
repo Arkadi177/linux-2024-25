@@ -1,4 +1,4 @@
-#include "blocking_queue.h"
+#include "BlockingQueue.h"
 #include <thread>
 
 int main(){
@@ -8,7 +8,7 @@ int main(){
             Myqueue.push(i);
         }
     });
-  std::this_thread::sleep_for(std::chrono::seconds());
+  // std::this_thread::sleep_for(std::chrono::seconds(3));
   std::thread consumerThread([&Myqueue] {
       for (int i = 1; i <= 20; ++i) {
           Myqueue.pop();
