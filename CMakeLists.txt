@@ -20,4 +20,4 @@ add_subdirectory(Demo/Directory_watcher)
 
 add_subdirectory(Demo/Do_Command)
 
-add_subdirectory(Demo/Blocking_queue)
+add_subdirectory(Demo/Thread)
