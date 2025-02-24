@@ -19,8 +19,8 @@ set(SOURCES
 
 add_library(utils_static STATIC ${SOURCES})
 
-add_library(utils_shared SHARED ${SOURCES})
+#add_library(utils_shared SHARED ${SOURCES})
 
 target_include_directories(utils_static PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(utils_shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+#target_include_directories(utils_shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
