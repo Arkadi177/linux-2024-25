@@ -56,6 +56,12 @@ class BlockingQueue{
        return m_queue.size() < m_size;
     }
 
+    T& front()
+    {
+      std::unique_lock<std::mutex> lock(m_mutex);
+      return m_queue.front();
+    }
+
     bool try_push(T&& item) {
         std::unique_lock<std::mutex> lock(m_mutex);
         if(m_dead[m_index]) {
@@ -78,15 +84,14 @@ class BlockingQueue{
        m_condition_variable.notify_one();
     }
 
-    bool try_pop() {
+    bool try_pop(T& item) {
        std::unique_lock<std::mutex> lock(m_mutex);
-       if(m_dead[m_index]) {
+       if(m_dead[m_index] || m_queue.empty()) {
          return false;
        }
-       else if(!m_queue.empty()) {
-         m_queue.pop();
-       }
-       return !m_queue.empty();
+       item = std::move(m_queue.front());
+       m_queue.pop();
+       return true;
     }
 
     ~BlockingQueue() {

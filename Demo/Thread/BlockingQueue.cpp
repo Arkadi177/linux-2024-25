@@ -14,7 +14,6 @@ int main(){
           Myqueue.pop();
       }
   });
-  producerThread.join();
-  consumerThread.join();
+
   return 0;
 }
