@@ -24,9 +24,7 @@ public:
         while(!m_stop) {
           std::function<void()> task;
           if (m_tasks.try_pop(task)) {
-            if (task) {
-              task();
-            }
+            task();
           }
         }
       });
@@ -46,8 +44,8 @@ public:
     auto promise = std::make_shared<std::promise<return_type<F, Args...>>>();
     auto future = promise->get_future();
 
-    auto task = [promise, f = std::forward<F>(f), args...]{
-      promise->set_value(f(args...));
+    auto task = [promise, f = std::forward<F>(f), args = std::make_tuple(std::forward<Args>(args)...)]{
+      promise->set_value(std::apply(f , args));
     };
 
     m_tasks.push(std::move(task));
