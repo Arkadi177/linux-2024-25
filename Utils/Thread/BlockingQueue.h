@@ -73,15 +73,21 @@ class BlockingQueue{
         return m_queue.size() < m_size;
     }
 
-    void pop() noexcept{
+    T pop(bool& status) noexcept{
        std::unique_lock<std::mutex> lock(m_mutex);
-       m_condition_variable.wait(lock, [&]{return !m_queue.empty();});
-       if(m_dead[m_index]) {
-         return;
+       T item = {};
+       if(!m_condition_variable.wait_for(lock , std::chrono::seconds(2) , [&]{return !m_queue.empty();})) {
+         status = true;
+         return item;
        }
+       if(m_dead[m_index]) {
+         return item;
+       }
+       item = std::move(m_queue.front());
        m_queue.pop();
        lock.unlock();
        m_condition_variable.notify_one();
+       return item;
     }
 
     bool try_pop(T& item) {
