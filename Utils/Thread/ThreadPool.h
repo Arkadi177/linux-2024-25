@@ -15,20 +15,22 @@ class ThreadPool{
   BlockingQueue<std::function<void()>> m_tasks;
   std::atomic<bool> m_stop;
   std::atomic<std::size_t> m_thread_count;
-  bool m_pop_status = false;
 
 public:
   explicit ThreadPool(): m_tasks(std::thread::hardware_concurrency()),
   m_stop(false), m_thread_count(std::thread::hardware_concurrency()) {
     for(size_t i = 0; i < m_thread_count; i++) {
       m_threads.emplace_back([this]{
-        while(!m_stop) {
-          std::function<void()> task;
-          task = m_tasks.pop(m_pop_status);
-          if(m_pop_status) {
-            m_stop = true;
-          }else {
+        while(true) {
+          std::function<void()> task = [this]{ return; };
+          if(task) {
+            task = m_tasks.pop();
             task();
+          }else {
+            m_stop = true;
+          }
+          if(m_stop) {
+            break;
           }
         }
       });
@@ -37,8 +39,13 @@ public:
 
   ~ThreadPool() {
     m_stop = true;
+    for (int i = 0; i < m_thread_count; i++) {
+      m_tasks.push([]{});
+    }
     for(auto& t : m_threads) {
-      t.join();
+      if(t.joinable()) {
+        t.join();
+      }
     }
   }
 

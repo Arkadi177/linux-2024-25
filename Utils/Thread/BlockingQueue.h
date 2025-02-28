@@ -56,12 +56,6 @@ class BlockingQueue{
        return m_queue.size() < m_size;
     }
 
-    T& front()
-    {
-      std::unique_lock<std::mutex> lock(m_mutex);
-      return m_queue.front();
-    }
-
     bool try_push(T&& item) {
         std::unique_lock<std::mutex> lock(m_mutex);
         if(m_dead[m_index]) {
@@ -73,13 +67,10 @@ class BlockingQueue{
         return m_queue.size() < m_size;
     }
 
-    T pop(bool& status) noexcept{
+    T pop() noexcept{
        std::unique_lock<std::mutex> lock(m_mutex);
        T item = {};
-       if(!m_condition_variable.wait_for(lock , std::chrono::seconds(2) , [&]{return !m_queue.empty();})) {
-         status = true;
-         return item;
-       }
+       m_condition_variable.wait(lock , [&]{return !m_queue.empty();});
        if(m_dead[m_index]) {
          return item;
        }
