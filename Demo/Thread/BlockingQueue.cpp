@@ -2,8 +2,9 @@
 #include <thread>
 
 int main(){
-    BlockingQueue<int>* Myqueue = new BlockingQueue<int>();
-    Myqueue->set_size(10);
+    std::mutex m;
+    std::condition_variable cv;
+    BlockingQueue<int>* Myqueue = new BlockingQueue<int>(m , cv , 10);
     std::thread producerThread([&Myqueue] {
     for (int i = 1; i <= 20; ++i) {
         Myqueue->push(i);

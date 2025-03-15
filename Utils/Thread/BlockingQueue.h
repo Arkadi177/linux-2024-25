@@ -9,24 +9,22 @@
 template <typename T>
 class BlockingQueue
 {
-    std::mutex m_mutex;
-    std::condition_variable m_condition_variable;
+    std::mutex& m_mutex;
+    std::condition_variable& m_condition_variable;
     std::queue<T> m_queue;
     std::size_t m_size = 0;
 
 public:
-    void set_size(std::size_t size)
-    {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        m_size = size;
-    }
+    BlockingQueue(std::mutex& mutex, std::condition_variable& condition_variable, std::size_t size)
+        : m_mutex(mutex) ,
+          m_condition_variable(condition_variable) ,
+          m_size(size){}
 
     void push(const T& item)
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_condition_variable.wait(lock, [&] { return m_queue.size() < m_size; });
         m_queue.push(item);
-        lock.unlock();
         m_condition_variable.notify_one();
      }
 
@@ -35,7 +33,6 @@ public:
         std::unique_lock<std::mutex> lock(m_mutex);
         m_condition_variable.wait(lock, [&] { return m_queue.size() < m_size; });
         m_queue.push(std::move(item));
-        lock.unlock();
         m_condition_variable.notify_one();
     }
 
@@ -63,14 +60,15 @@ public:
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_condition_variable.wait(lock, [&] { return !m_queue.empty(); });
+
         std::optional<T> result;
-        if(std::is_assignable<T , T>::value) {
+        if constexpr (std::is_nothrow_move_constructible_v<T>) {
+            result = std::move(m_queue.front());
+        } else {
             result = m_queue.front();
-        }else {
-            result = std::nullopt;
         }
+
         m_queue.pop();
-        lock.unlock();
         m_condition_variable.notify_one();
         return result;
     }
@@ -78,12 +76,14 @@ public:
     bool try_pop(T& item)
     {
         std::unique_lock<std::mutex> lock(m_mutex);
+        if (m_queue.empty()) {
+            return false;
+        }
         item = std::move(m_queue.front());
         m_queue.pop();
         return true;
     }
 
-    ~BlockingQueue() = delete;
 };
 
 #endif // BLOCKING_QUEUE_H
