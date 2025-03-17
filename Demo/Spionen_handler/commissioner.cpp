@@ -1,27 +1,27 @@
 #include <iostream>
 #include <csignal>
-#include <fcntl.h>
-#include <unistd.h>
 #include <fstream>
 #include <vector>
 #include <sstream>
 #include <sys/wait.h>
 #include <cstring>
+#include <cerrno>
+#include <unistd.h>
 
 void signalHandler(int sig, siginfo_t *info, void *context)
 {
     std::cout << "Received signal " << sig << std::endl;
     if (sig == SIGILL)
     {
-        std::cout << "Spionen kiled!!!!!!! "  << info->si_pid << std::endl;
+        std::cout << "Spionen killed!!!!!!! " << info->si_pid << std::endl;
         kill(info->si_pid, SIGKILL);
     }
 }
 
 void findAndEliminateSpy()
 {
-    auto fd = open("postman.txt", O_RDONLY);
-    if (fd == -1)
+    std::ifstream file("postman.txt");
+    if (!file.is_open())
     {
         std::cerr << "Error opening postman.txt\n";
         return;
@@ -30,39 +30,46 @@ void findAndEliminateSpy()
     std::vector<pid_t> pids;
     std::string pid_string;
 
-    char buffer;
-    while (read(fd, &buffer, 1) > 0)
+    while (file >> pid_string)
     {
-        if (buffer != ' ' && buffer != '\n')
-        {
-            pid_string.push_back(buffer);
-        }
-        else if (!pid_string.empty())
+        try
         {
             pids.push_back(std::stoi(pid_string));
-            pid_string.clear();
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Invalid PID in file: " << pid_string << " (" << e.what() << ")\n";
         }
     }
 
-    close(fd);
+    file.close();
 
     std::cout << "Commissioner scanning for spies...\n";
 
+    sigset_t mask, old_mask;
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGILL);
+    sigprocmask(SIG_BLOCK, &mask, &old_mask);
+
     for (pid_t pid : pids)
     {
-        if(kill(pid, SIGCONT) != 0)
+        if (kill(pid, SIGCONT) != 0)
         {
+            std::cerr << "Failed to send SIGCONT to PID: " << pid << " (" << strerror(errno) << ")\n";
             continue;
         }
 
-        struct sigaction sg;
+        struct sigaction sg{};
         sg.sa_sigaction = signalHandler;
         sg.sa_flags = SA_SIGINFO;
         sigemptyset(&sg.sa_mask);
         sigaction(SIGILL, &sg, nullptr);
 
-        pause();
+        // Wait only for SIGILL, but continue immediately if another signal comes
+        sigsuspend(&old_mask);
     }
+
+    sigprocmask(SIG_SETMASK, &old_mask, nullptr);
 
     std::cout << "Commissioner operation complete.\n";
 }

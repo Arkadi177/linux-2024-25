@@ -1,12 +1,11 @@
 #include <algorithm>
 #include <iostream>
 #include <csignal>
-#include <cstring>
-#include <fcntl.h>
-#include <unistd.h>
 #include <fstream>
 #include <random>
 #include <string>
+#include <vector>
+#include <cstring>
 
 void signalHandler(int sig, siginfo_t *info, void *context)
 {
@@ -16,7 +15,7 @@ void signalHandler(int sig, siginfo_t *info, void *context)
 
         if (kill(info->si_pid, 0) == -1)
         {
-            std::cerr << "Invalid PID: " << info->si_pid << " (" << std::strerror(errno) << ")" << std::endl;
+            std::cerr << "Invalid PID: " << info->si_pid << " (" << strerror(errno) << ")" << std::endl;
             return;
         }
 
@@ -24,46 +23,40 @@ void signalHandler(int sig, siginfo_t *info, void *context)
 
         if (kill(info->si_pid, SIGILL) != 0)
         {
-            std::cerr << "Failed to send SIGILL to PID: " << info->si_pid << " (" << std::strerror(errno) << ")" << std::endl;
+            std::cerr << "Failed to send SIGILL to PID: " << info->si_pid << " (" << strerror(errno) << ")" << std::endl;
         }
     }
 }
 
-int generateRandom4Digit() {
-
+int generateRandom4Digit()
+{
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> dist(1000, 9999);
-
     return dist(gen);
 }
 
-int main() {
-    auto fd = open("postman.txt", O_RDWR | O_CREAT | O_APPEND);
+int main()
+{
+    std::ofstream file("postman.txt", std::ios::app);
 
-    if(fd == -1)
+    if (!file)
     {
-        std::cerr << "Failed to open file descriptor" << std::endl;
-        exit(EXIT_FAILURE);
+        std::cerr << "Failed to open postman.txt" << std::endl;
+        return EXIT_FAILURE;
     }
 
-    std::vector<pid_t> pids;
+    std::vector<pid_t> pids = {getpid(), generateRandom4Digit(), generateRandom4Digit()};
 
-    pids.push_back(getpid());
-    pids.push_back(generateRandom4Digit());
-    pids.push_back(generateRandom4Digit());
-
-    std::string str{};
     std::shuffle(pids.begin(), pids.end(), std::random_device());
 
-    for(auto it : pids)
+    for (auto pid : pids)
     {
-        str = std::to_string(it) + " ";
-        std::cout << "Process or not? id : " << it << std::endl;
-        write(fd, str.c_str(), str.size());
+        std::cout << "Process or not? id : " << pid << std::endl;
+        file << pid << " "; // Write PID to file
     }
 
-    close(fd);
+    file.close();
 
     struct sigaction action;
     action.sa_sigaction = signalHandler;
@@ -75,4 +68,3 @@ int main() {
 
     return 0;
 }
-
