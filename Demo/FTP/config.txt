@@ -1,0 +1,5 @@
+au=error
+ez=uxt
+arkad=uxt
+testuser=testpass
+ajara=gyuju
