@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(linux_homeworks)
+set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(Demo/Iterator)
 
 add_subdirectory(Utils/)
@@ -23,3 +24,5 @@ add_subdirectory(Demo/Do_Command)
 add_subdirectory(Demo/Thread)
 
 add_subdirectory(Demo/Spionen_handler)
+
+add_subdirectory(Demo/FTP)
